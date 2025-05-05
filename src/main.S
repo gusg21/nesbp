@@ -97,8 +97,10 @@ loadpalettes:
 ; We are using $0200-$02FF for our OAM source data for DMA.
 	_SETPLAYERPOS $80,$80
 	LDA #$00
-	STA PLAYERSPR_S ; tile number = 0
 	STA PLAYERSPR_C	; color = 0, no flipping
+	
+	LDA #$01
+	STA PLAYERSPR_S ; tile number = 1
 
 	LDA #%10000000  ; enable NMI, sprites from Pattern Table 0
 	STA $2000
