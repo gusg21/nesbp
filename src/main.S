@@ -40,8 +40,8 @@ RESET:
 	STX $4017
 	
 	LDX #$FF
-	TXS             ; set SP = 255 (why?)
-	
+	TXS             ; set SP = 255
+
 	INX             ; make x = 0
 	STX $2000       ; disable NMI
 	STX $2001       ; disable sprites and background
@@ -58,14 +58,14 @@ vblankwait1:
 clrmem:
 	LDA #$00        ; A = 0
 	@loop:
-	STA $0000, x    ; store 0 -> $0000+x
-	STA $0100, x    ; ...
-	STA $0200, x
-	STA $0300, x
-	STA $0400, x
-	STA $0500, x
-	STA $0600, x
-	STA $0700, x
+	STA $0000,X    ; store 0 -> $0000+x
+	STA $0100,X    ; ...
+	STA $0200,X
+	STA $0300,X
+	STA $0400,X
+	STA $0500,X
+	STA $0600,X
+	STA $0700,X
 	; LDA #$FE
 	; STA $0300, x  ; store $FE -> $0300+x (why?)
 	INX             ; x++
@@ -86,7 +86,7 @@ loadpalettes:
 	
 	LDX #$00
 	@loop:
-	LDA palette, x
+	LDA palette,X
 	STA $2007		; write pallete+x into the PPU memory (via register)
 	INX
 	CPX #$20
@@ -121,7 +121,7 @@ readinput:
 	; A = 0
 	STA CTRL_STATE  ; clear CTRL_STATE
 	LDX #$00
-	@readkey:
+	-
 	ASL CTRL_STATE	; shift CTRL_STATE left
 	LDA $4016		; read button state into A
 	AND #%00000001  ; mask off the bit we want
@@ -129,20 +129,35 @@ readinput:
 	STA CTRL_STATE 	; store our result
 	INX				; only run this loop 8x
 	CPX #$08
-	BCC @readkey
+	BCC -
 	
 playermove:
 	; Move right
 	LDA CTRL_STATE
-	AND CTRL_RIGHT
+	AND #CTRL_RIGHT
 	BEQ +
 	INC PLAYERSPR_X
 	+
 
 	; Move left
-	AND CTRL_LEFT
+	LDA CTRL_STATE
+	AND #CTRL_LEFT
 	BEQ +
 	DEC PLAYERSPR_X
+	+
+
+	; Move up
+	LDA CTRL_STATE
+	AND #CTRL_UP
+	BEQ +
+	DEC PLAYERSPR_Y
+	+
+
+	; Move down
+	LDA CTRL_STATE
+	AND #CTRL_DOWN
+	BEQ +
+	INC PLAYERSPR_Y
 	+
 
 copyoammirror:
@@ -152,7 +167,7 @@ copyoammirror:
   	STA $4014  		; read from the page beginning at $0200 (our OAM mirror) and begin 
 					; the copy
 	
-	RTI             ; ignore vblank NMI for now
+	RTI            
 
 ;;; ROM Data
 

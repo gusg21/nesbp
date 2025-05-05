@@ -3,3 +3,4 @@
 *.cdl
 .vscode/
 bin/fceux/fceux.cfg
+bin/yychr/yychr.ini
