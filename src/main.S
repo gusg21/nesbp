@@ -7,7 +7,15 @@ INESMIR 1
 
 ;;; Macros
 
-CTRL_STATE EQU $0001
+CTRL_STATE 			EQU $0001
+CTRL_A 				EQU %10000000
+CTRL_B 				EQU %01000000
+CTRL_SELECT 		EQU %00100000
+CTRL_START 			EQU %00010000
+CTRL_UP 			EQU %00001000
+CTRL_DOWN 			EQU %00000100
+CTRL_LEFT 			EQU %00000010
+CTRL_RIGHT 			EQU %00000001
 
 PLAYERSPR_Y EQU $0200
 PLAYERSPR_S EQU $0201
@@ -111,22 +119,31 @@ readinput:
 	STA $4016    	; tell both the controllers to latch buttons
 	
 	; A = 0
-	REPT 8
-	LDX $4016		; read button state into X (0000000_)
-	STX CTRL_STATE	; store X to temp location
-	ASL 			; shift A left
-	ORA	CTRL_STATE  ; OR the read bit and the state so far 
-	STA CTRL_STATE
-	ENDR
+	STA CTRL_STATE  ; clear CTRL_STATE
+	LDX #$00
+	@readkey:
+	ASL CTRL_STATE	; shift CTRL_STATE left
+	LDA $4016		; read button state into A
+	AND #%00000001  ; mask off the bit we want
+	ORA CTRL_STATE  ; OR with the existing state
+	STA CTRL_STATE 	; store our result
+	INX				; only run this loop 8x
+	CPX #$08
+	BCC @readkey
 	
+playermove:
+	; Move right
 	LDA CTRL_STATE
-	CMP #$00
-	BEQ dontmoveplayer
-moveplayer:
-	LDA PLAYERSPR_X
-	ADC #$01		; increment sprite 0's X position
-	STA PLAYERSPR_X
-dontmoveplayer:
+	AND CTRL_RIGHT
+	BEQ +
+	INC PLAYERSPR_X
+	+
+
+	; Move left
+	AND CTRL_LEFT
+	BEQ +
+	DEC PLAYERSPR_X
+	+
 
 copyoammirror:
 	LDA #$00
@@ -141,7 +158,7 @@ copyoammirror:
 
 palette:
   .db $0F,$31,$21,$23,$0F,$35,$36,$37,$0F,$39,$3A,$3B,$0F,$3D,$3E,$0F
-  .db $0F,$31,$21,$23,$0F,$02,$38,$3C,$0F,$1C,$15,$14,$0F,$02,$38,$3C
+  .DB $0F,$31,$21,$23,$0F,$02,$38,$3C,$0F,$1C,$15,$14,$0F,$02,$38,$3C
 
 ;;; Vectors
 

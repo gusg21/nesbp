@@ -2,3 +2,4 @@
 *.nes.deb
 *.cdl
 .vscode/
+bin/fceux/fceux.cfg
