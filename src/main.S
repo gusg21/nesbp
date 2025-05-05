@@ -57,9 +57,9 @@ vblankwait1:
 	
 clrmem:
 	LDA #$00        ; A = 0
-	@loop:
-	STA $0000,X    ; store 0 -> $0000+x
-	STA $0100,X    ; ...
+	-
+	STA $0000,X    	; store 0 -> $0000+x
+	STA $0100,X    	; ...
 	STA $0200,X
 	STA $0300,X
 	STA $0400,X
@@ -69,7 +69,7 @@ clrmem:
 	; LDA #$FE
 	; STA $0300, x  ; store $FE -> $0300+x (why?)
 	INX             ; x++
-	BNE @loop      	; branch to loop start if x != 0
+	BNE -	      	; branch to loop start if x != 0
 	
 vblankwait2:
 	BIT $2002
@@ -85,12 +85,12 @@ loadpalettes:
 	STA $2006		; low byte
 	
 	LDX #$00
-	@loop:
+	-
 	LDA palette,X
 	STA $2007		; write pallete+x into the PPU memory (via register)
 	INX
 	CPX #$20
-	BNE @loop		; stop when x == 32 (0x20)
+	BNE -			; stop when x == 32 (0x20)
 	
 loadbgs:
 	LDA $2002		; read PPUSTATUS to reset high/low latch (internal PPU trickery)
@@ -101,11 +101,11 @@ loadbgs:
 	STA $2006		; low byte
 	
 	LDX #$00
-	@loop:
+	-
 	LDA #$00
 	STA $2007		; write pallete+x into the PPU memory (via register)
 	INX
-	BNE @loop		; stop when zero
+	BNE -			; stop when zero
 	
 
 ; Sprite stuffz
