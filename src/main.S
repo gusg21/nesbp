@@ -92,6 +92,21 @@ loadpalettes:
 	CPX #$20
 	BNE @loop		; stop when x == 32 (0x20)
 	
+loadbgs:
+	LDA $2002		; read PPUSTATUS to reset high/low latch (internal PPU trickery)
+	
+	LDA #$20
+	STA $2006		; write high byte of $3F00
+	LDA #$00		
+	STA $2006		; low byte
+	
+	LDX #$00
+	@loop:
+	LDA #$00
+	STA $2007		; write pallete+x into the PPU memory (via register)
+	INX
+	BNE @loop		; stop when zero
+	
 
 ; Sprite stuffz
 ; We are using $0200-$02FF for our OAM source data for DMA.
@@ -102,10 +117,10 @@ loadpalettes:
 	LDA #$01
 	STA PLAYERSPR_S ; tile number = 1
 
-	LDA #%10000000  ; enable NMI, sprites from Pattern Table 0
+	LDA #%10010000  ; enable NMI, sprites from Pattern Table 0, tiles from PT1
 	STA $2000
 
-	LDA #%00010000  ; enable sprites
+	LDA #%00011000  ; enable sprites
 	STA $2001
 
 forever:
