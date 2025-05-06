@@ -22,6 +22,9 @@ PLAYERSPR_S EQU $0201
 PLAYERSPR_C EQU $0202
 PLAYERSPR_X EQU $0203
 
+SCROLL_X EQU $0002
+SCROLL_Y EQU $0003
+
 MACRO _SETPLAYERPOS x,y
 	LDA #y
 	STA PLAYERSPR_Y
@@ -46,6 +49,11 @@ RESET:
 	STX $2000       ; disable NMI
 	STX $2001       ; disable sprites and background
 	STX $4010       ; disable DMC IRQs
+	
+	BIT $2002		
+	LDA #$00
+	STA $2005
+	STA $2005		; reset scroll
 	
 vblankwait1:
 	; Crazy shenanigans for checking BIT 7 of the PPUSTATUS to wait for VBLANK.
@@ -105,6 +113,22 @@ loadbgs:
 	LDA #$00
 	STA $2007		; write pallete+x into the PPU memory (via register)
 	INX
+	BNE -			; stop when zero
+	
+loadattrs:
+	LDA $2002		; read PPUSTATUS to reset high/low latch (internal PPU trickery)
+	
+	LDA #$23
+	STA $2006		; write high byte of $3F00
+	LDA #$C0		
+	STA $2006		; low byte
+	
+	LDX #$00
+	-
+	LDA #%01010101
+	STA $2007		; write pallete+x into the PPU memory (via register)
+	INX
+	CPX #$40
 	BNE -			; stop when zero
 	
 
@@ -184,6 +208,16 @@ copyoammirror:
   	STA $4014  		; read from the page beginning at $0200 (our OAM mirror) and begin 
 					; the copy
 	
+updatescroll:
+	INC SCROLL_X
+	INC SCROLL_Y
+
+	BIT $2002
+	LDA SCROLL_X
+	STA $2005
+	LDA SCROLL_Y
+	STA $2005
+
 	RTI            
 
 ;;; ROM Data
